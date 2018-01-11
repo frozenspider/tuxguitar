@@ -5,15 +5,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Track;
+
 import org.herac.tuxguitar.gm.GMChannelRoute;
 import org.herac.tuxguitar.gm.GMChannelRouter;
 import org.herac.tuxguitar.io.base.TGFileFormatException;
 import org.herac.tuxguitar.io.base.TGSongReader;
 import org.herac.tuxguitar.io.base.TGSongReaderHandle;
-import org.herac.tuxguitar.io.midi.base.MidiEvent;
-import org.herac.tuxguitar.io.midi.base.MidiMessage;
-import org.herac.tuxguitar.io.midi.base.MidiSequence;
-import org.herac.tuxguitar.io.midi.base.MidiTrack;
+import org.herac.tuxguitar.io.midi.base.MetaMessageTypes;
 import org.herac.tuxguitar.player.base.MidiControllers;
 import org.herac.tuxguitar.song.factory.TGFactory;
 import org.herac.tuxguitar.song.managers.TGSongManager;
@@ -58,15 +62,16 @@ public class MidiSongReader extends MidiFileFormat implements TGSongReader {
 				this.settings = MidiSettings.getDefaults();
 			}
 			
-			MidiSequence sequence = new MidiFileReader().getSequence(handle.getInputStream());
+			Sequence sequence = new MidiFileReader().getSequence(handle.getInputStream());
 			initFields(sequence);
-			for(int i = 0; i < sequence.countTracks(); i++){
-				MidiTrack track = sequence.getTrack(i);
+			Track[] tracks = sequence.getTracks();
+      for(int i = 0; i < tracks.length; i++){
+				Track track = tracks[i];
 				int trackNumber = getNextTrackNumber();
 				int events = track.size();
 				for(int j = 0;j < events;j ++){
 					MidiEvent event = track.get(j);
-					parseMessage(i,trackNumber,event.getTick(),event.getMessage());
+					parseMessage(i, trackNumber, event.getTick(), event.getMessage());
 				}
 			}
 			
@@ -84,9 +89,8 @@ public class MidiSongReader extends MidiFileFormat implements TGSongReader {
 			while(headers.hasNext()){
 				tgSong.addMeasureHeader((TGMeasureHeader)headers.next());
 			}
-			Iterator<TGTrack> tracks = this.tracks.iterator();
-			while(tracks.hasNext()){
-				tgSong.addTrack((TGTrack)tracks.next());
+			for (TGTrack tgTrack: this.tracks){
+				tgSong.addTrack(tgTrack);
 			}
 			
 			handle.setSong(new SongAdjuster(this.factory, tgSong).adjustSong());
@@ -95,7 +99,7 @@ public class MidiSongReader extends MidiFileFormat implements TGSongReader {
 		}
 	}
 	
-	private void initFields(MidiSequence sequence){
+	private void initFields(Sequence sequence){
 		this.resolution = sequence.getResolution();
 		this.channels = new ArrayList<TGChannel>();
 		this.headers = new ArrayList<TGMeasureHeader>();
@@ -110,40 +114,54 @@ public class MidiSongReader extends MidiFileFormat implements TGSongReader {
 		return (this.tracks.size() + 1);
 	}
 	
-	private void parseMessage(int trackIdx,int trackNumber,long tick,MidiMessage message){
-		long parsedTick = parseTick(tick + this.resolution);
-		
-		//NOTE ON
-		if(message.getType() == MidiMessage.TYPE_SHORT && message.getCommand() == MidiMessage.NOTE_ON){
-			parseNoteOn(trackNumber,parsedTick,message.getData());
-		}
-		//NOTE OFF
-		else if(message.getType() == MidiMessage.TYPE_SHORT && message.getCommand() == MidiMessage.NOTE_OFF){
-			parseNoteOff(trackNumber,parsedTick,message.getData());
-		}
-		//PROGRAM CHANGE
-		else if(message.getType() == MidiMessage.TYPE_SHORT && message.getCommand() == MidiMessage.PROGRAM_CHANGE){
-			parseProgramChange(message.getData());
-		}
-		//CONTROL CHANGE
-		else if(message.getType() == MidiMessage.TYPE_SHORT && message.getCommand() == MidiMessage.CONTROL_CHANGE){
-			parseControlChange(message.getData());
-		}
-		//TRACK NAME
-		else if(message.getType() == MidiMessage.TYPE_META && message.getCommand() == MidiMessage.TRACK_NAME){
-			parseTrackName(trackIdx, trackNumber, message.getData());
-		}
-		//TIME SIGNATURE
-		else if(message.getType() == MidiMessage.TYPE_META && message.getCommand() == MidiMessage.TIME_SIGNATURE_CHANGE){
-			parseTimeSignature(parsedTick,message.getData());
-		}
-		//TEMPO
-		else if(message.getType() == MidiMessage.TYPE_META && message.getCommand() == MidiMessage.TEMPO_CHANGE){
-			parseTempo(parsedTick,message.getData());
-		}
-	}
-	
-	private long parseTick(long tick){
+  private void parseMessage(int trackIdx, int trackNumber, long tick, MidiMessage midiMessage) {
+    long parsedTick = parseTick(tick + this.resolution);
+    if (midiMessage instanceof ShortMessage) {
+      parseShortMessage(trackNumber, parsedTick, (ShortMessage) midiMessage);
+    } else if (midiMessage instanceof MetaMessage) {
+      parseMetaMessage(trackIdx, trackNumber, parsedTick, (MetaMessage) midiMessage);
+    }
+  }
+
+  private void parseShortMessage(int trackNumber, long parsedTick, ShortMessage midiMessage) {
+    byte[] content = midiMessage.getMessage();
+    int command = midiMessage.getCommand();
+    // NOTE ON
+    if (command == ShortMessage.NOTE_ON) {
+      parseNoteOn(trackNumber, parsedTick, content);
+    }
+    // NOTE OFF
+    else if (command == ShortMessage.NOTE_OFF) {
+      parseNoteOff(trackNumber, parsedTick, content);
+    }
+    // PROGRAM CHANGE
+    else if (command == ShortMessage.PROGRAM_CHANGE) {
+      parseProgramChange(content);
+    }
+    // CONTROL CHANGE
+    else if (command == ShortMessage.CONTROL_CHANGE) {
+      parseControlChange(content);
+    }
+  }
+  
+  private void parseMetaMessage(int trackIdx, int trackNumber, long parsedTick, MetaMessage midiMessage) {
+    int type = midiMessage.getType();
+    byte[] content = midiMessage.getData();
+    // TRACK NAME
+    if (type == MetaMessageTypes.TRACK_NAME) {
+      parseTrackName(trackIdx, trackNumber, content);
+    }
+    // TIME SIGNATURE
+    else if (type == MetaMessageTypes.TIME_SIGNATURE_CHANGE) {
+      parseTimeSignature(parsedTick, content);
+    }
+    // TEMPO
+    else if (type == MetaMessageTypes.TEMPO_CHANGE) {
+      parseTempo(parsedTick, content);
+    }
+  }
+
+  private long parseTick(long tick){
 		return Math.abs(TGDuration.QUARTER_TIME * tick / this.resolution);
 	}
 	

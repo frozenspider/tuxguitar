@@ -7,4 +7,8 @@ public class MidiFileException extends Exception{
 	public MidiFileException(String message) {
 		super(message);
 	}
+  
+  public MidiFileException(Exception ex) {
+    super(ex);
+  }
 }

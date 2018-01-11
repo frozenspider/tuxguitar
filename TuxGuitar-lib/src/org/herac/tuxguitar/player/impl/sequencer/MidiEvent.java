@@ -19,7 +19,7 @@ public class MidiEvent {
 	private int track;
 	private byte[] data;
 	
-	public MidiEvent(long tick,int type,byte[] data){
+	private MidiEvent(long tick,int type,byte[] data){
 		this(tick,type,ALL_TRACKS,data);
 	}
 	
