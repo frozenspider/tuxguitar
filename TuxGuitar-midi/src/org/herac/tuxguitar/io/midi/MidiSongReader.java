@@ -65,7 +65,7 @@ public class MidiSongReader extends MidiFileFormat implements TGSongReader {
 			Sequence sequence = new MidiFileReader().getSequence(handle.getInputStream());
 			initFields(sequence);
 			Track[] tracks = sequence.getTracks();
-      for(int i = 0; i < tracks.length; i++){
+			for(int i = 0; i < tracks.length; i++){
 				Track track = tracks[i];
 				int trackNumber = getNextTrackNumber();
 				int events = track.size();
@@ -114,54 +114,54 @@ public class MidiSongReader extends MidiFileFormat implements TGSongReader {
 		return (this.tracks.size() + 1);
 	}
 	
-  private void parseMessage(int trackIdx, int trackNumber, long tick, MidiMessage midiMessage) {
-    long parsedTick = parseTick(tick + this.resolution);
-    if (midiMessage instanceof ShortMessage) {
-      parseShortMessage(trackNumber, parsedTick, (ShortMessage) midiMessage);
-    } else if (midiMessage instanceof MetaMessage) {
-      parseMetaMessage(trackIdx, trackNumber, parsedTick, (MetaMessage) midiMessage);
-    }
-  }
-
-  private void parseShortMessage(int trackNumber, long parsedTick, ShortMessage midiMessage) {
-    byte[] content = midiMessage.getMessage();
-    int command = midiMessage.getCommand();
-    // NOTE ON
-    if (command == ShortMessage.NOTE_ON) {
-      parseNoteOn(trackNumber, parsedTick, content);
-    }
-    // NOTE OFF
-    else if (command == ShortMessage.NOTE_OFF) {
-      parseNoteOff(trackNumber, parsedTick, content);
-    }
-    // PROGRAM CHANGE
-    else if (command == ShortMessage.PROGRAM_CHANGE) {
-      parseProgramChange(content);
-    }
-    // CONTROL CHANGE
-    else if (command == ShortMessage.CONTROL_CHANGE) {
-      parseControlChange(content);
-    }
-  }
-  
-  private void parseMetaMessage(int trackIdx, int trackNumber, long parsedTick, MetaMessage midiMessage) {
-    int type = midiMessage.getType();
-    byte[] content = midiMessage.getData();
-    // TRACK NAME
-    if (type == MetaMessageTypes.TRACK_NAME) {
-      parseTrackName(trackIdx, trackNumber, content);
-    }
-    // TIME SIGNATURE
-    else if (type == MetaMessageTypes.TIME_SIGNATURE_CHANGE) {
-      parseTimeSignature(parsedTick, content);
-    }
-    // TEMPO
-    else if (type == MetaMessageTypes.TEMPO_CHANGE) {
-      parseTempo(parsedTick, content);
-    }
-  }
-
-  private long parseTick(long tick){
+	private void parseMessage(int trackIdx, int trackNumber, long tick, MidiMessage midiMessage) {
+		long parsedTick = parseTick(tick + this.resolution);
+		if (midiMessage instanceof ShortMessage) {
+			parseShortMessage(trackNumber, parsedTick, (ShortMessage) midiMessage);
+		} else if (midiMessage instanceof MetaMessage) {
+			parseMetaMessage(trackIdx, trackNumber, parsedTick, (MetaMessage) midiMessage);
+		}
+	}
+	
+	private void parseShortMessage(int trackNumber, long parsedTick, ShortMessage midiMessage) {
+		byte[] content = midiMessage.getMessage();
+		int command = midiMessage.getCommand();
+		// NOTE ON
+		if (command == ShortMessage.NOTE_ON) {
+			parseNoteOn(trackNumber, parsedTick, content);
+		}
+		// NOTE OFF
+		else if (command == ShortMessage.NOTE_OFF) {
+			parseNoteOff(trackNumber, parsedTick, content);
+		}
+		// PROGRAM CHANGE
+		else if (command == ShortMessage.PROGRAM_CHANGE) {
+			parseProgramChange(content);
+		}
+		// CONTROL CHANGE
+		else if (command == ShortMessage.CONTROL_CHANGE) {
+			parseControlChange(content);
+		}
+	}
+	
+	private void parseMetaMessage(int trackIdx, int trackNumber, long parsedTick, MetaMessage midiMessage) {
+		int type = midiMessage.getType();
+		byte[] content = midiMessage.getData();
+		// TRACK NAME
+		if (type == MetaMessageTypes.TRACK_NAME) {
+			parseTrackName(trackIdx, trackNumber, content);
+		}
+		// TIME SIGNATURE
+		else if (type == MetaMessageTypes.TIME_SIGNATURE_CHANGE) {
+			parseTimeSignature(parsedTick, content);
+		}
+		// TEMPO
+		else if (type == MetaMessageTypes.TEMPO_CHANGE) {
+			parseTempo(parsedTick, content);
+		}
+	}
+	
+	private long parseTick(long tick){
 		return Math.abs(TGDuration.QUARTER_TIME * tick / this.resolution);
 	}
 	
@@ -213,17 +213,17 @@ public class MidiSongReader extends MidiFileFormat implements TGSongReader {
 		}
 	}
 
-  /**
-   * If in a format 0 track, or the first track in a format 1 file, the name of the sequence.
-   * Otherwise, the name of the track.
-   */
+	/**
+	 * If in a format 0 track, or the first track in a format 1 file, the name of the sequence.
+	 * Otherwise, the name of the track.
+	 */
 	private void parseTrackName(int trackIdx, int trackNumber, byte[] data) {
 		String name = new String(data, Charset.forName("UTF-8"));
 		if (trackIdx == 0) {
-		  this.sequenceName = name;
+			this.sequenceName = name;
 		} else {
-      TGTrack track = getTrack(trackNumber);
-      track.setName(name);
+			TGTrack track = getTrack(trackNumber);
+			track.setName(name);
 		}
 	}
 	
