@@ -8,11 +8,11 @@ import javax.sound.midi.MidiFileFormat;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 
-public class MidiFileReader implements MidiFileHeader {
+public class MidiFileReader {
 
   public static boolean CANCEL_RUNNING_STATUS_ON_META_AND_SYSEX = true;
 
-  public Sequence getSequence(InputStream stream) throws InvalidMidiDataException, IOException {
+  public Sequence read(InputStream stream) throws InvalidMidiDataException, IOException {
     try {
       MidiFileFormat fileFormat = MidiSystem.getMidiFileFormat(stream);
       int type = fileFormat.getType();

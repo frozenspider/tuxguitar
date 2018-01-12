@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.sound.midi.InvalidMidiDataException;
+
 import org.herac.tuxguitar.song.managers.TGSongManager;
 import org.herac.tuxguitar.song.models.TGBeat;
 import org.herac.tuxguitar.song.models.TGChannel;
@@ -156,7 +158,7 @@ public class MidiSequenceParser {
 	/**
 	 * Crea la cancion
 	 */
-	public void parse(MidiSequenceHandler sequence) {
+	public void parse(MidiSequenceHandler sequence) throws InvalidMidiDataException {
 		this.infoTrack = 0;
 		this.metronomeTrack = (sequence.getTracks() - 1);
 		
@@ -183,7 +185,7 @@ public class MidiSequenceParser {
 	/**
 	 * Crea las pistas de la cancion
 	 */
-	private void createTrack(MidiSequenceHelper sh, TGTrack track) {
+	private void createTrack(MidiSequenceHelper sh, TGTrack track) throws InvalidMidiDataException {
 		TGChannel tgChannel = this.songManager.getChannel(this.song, track.getChannelId() );
 		if( tgChannel != null ){
 			TGMeasure previous = null;
@@ -209,7 +211,7 @@ public class MidiSequenceParser {
 		}
 	}
 	
-	private void makeBeats(MidiSequenceHelper sh, TGChannel channel, TGTrack track, TGMeasure measure, int mIndex, long startMove) {
+	private void makeBeats(MidiSequenceHelper sh, TGChannel channel, TGTrack track, TGMeasure measure, int mIndex, long startMove) throws InvalidMidiDataException {
 		int[] stroke = new int[track.stringCount()];
 		TGBeat previous = null;
 		for (int bIndex = 0; bIndex < measure.countBeats(); bIndex++) {
@@ -222,7 +224,7 @@ public class MidiSequenceParser {
 	/**
 	 * Crea las notas del compas
 	 */
-	private void makeNotes( MidiSequenceHelper sh, TGChannel tgChannel, TGTrack track, TGBeat beat, TGTempo tempo, int mIndex,int bIndex, long startMove, int[] stroke) {
+	private void makeNotes( MidiSequenceHelper sh, TGChannel tgChannel, TGTrack track, TGBeat beat, TGTempo tempo, int mIndex,int bIndex, long startMove, int[] stroke) throws InvalidMidiDataException {
 		for( int vIndex = 0; vIndex < beat.countVoices(); vIndex ++ ){
 			TGVoice voice = beat.getVoice(vIndex);
 			
@@ -352,14 +354,14 @@ public class MidiSequenceParser {
 	/**
 	 * Crea una nota en la posicion start
 	 */
-	private void makeNote(MidiSequenceHelper sh,int track, int key, long start, long duration, int velocity, int channel, int midiVoice, boolean bendMode) {
+	private void makeNote(MidiSequenceHelper sh,int track, int key, long start, long duration, int velocity, int channel, int midiVoice, boolean bendMode) throws InvalidMidiDataException {
 		sh.getSequence().addNoteOn(getTick(start),track,channel,fix(key),fix(velocity), midiVoice, bendMode);
 		if( duration > 0 ){
 			sh.getSequence().addNoteOff(getTick(start + duration),track,channel,fix(key),fix(velocity), midiVoice, bendMode);
 		}
 	}
 	
-	private void makeTrackChannel(MidiSequenceHelper sh,TGChannel channel,TGTrack track) {
+	private void makeTrackChannel(MidiSequenceHelper sh,TGChannel channel,TGTrack track) throws InvalidMidiDataException {
 		if((this.flags & ADD_MIXER_MESSAGES) != 0){
 			int channelId = channel.getChannelId();
 			long tick = getTick(TGDuration.QUARTER_TIME);
@@ -382,7 +384,7 @@ public class MidiSequenceParser {
 	/**
 	 * Agrega un Time Signature si es distinto al anterior
 	 */
-	private void addTimeSignature(MidiSequenceHelper sh,TGMeasure currMeasure, TGMeasure prevMeasure,long startMove){
+	private void addTimeSignature(MidiSequenceHelper sh,TGMeasure currMeasure, TGMeasure prevMeasure,long startMove) throws InvalidMidiDataException{
 		boolean addTimeSignature = false;
 		if (prevMeasure == null) {
 			addTimeSignature = true;
@@ -403,7 +405,7 @@ public class MidiSequenceParser {
 	/**
 	 * Agrega un Tempo si es distinto al anterior
 	 */
-	private void addTempo(MidiSequenceHelper sh,TGMeasure currMeasure, TGMeasure prevMeasure,long startMove){
+	private void addTempo(MidiSequenceHelper sh,TGMeasure currMeasure, TGMeasure prevMeasure,long startMove) throws InvalidMidiDataException{
 		boolean addTempo = false;
 		if (prevMeasure == null) {
 			addTempo = true;
@@ -511,7 +513,7 @@ public class MidiSequenceParser {
 		return ((velocity > 127)?127:velocity);
 	}
 	
-	public void addMetronome(MidiSequenceHelper sh,TGMeasureHeader header, long startMove){
+	public void addMetronome(MidiSequenceHelper sh,TGMeasureHeader header, long startMove) throws InvalidMidiDataException{
 		if( (this.flags & ADD_METRONOME) != 0) {
 			if( this.metronomeChannelId >= 0 ){
 				long start = (startMove + header.getStart());
@@ -524,7 +526,7 @@ public class MidiSequenceParser {
 		}
 	}
 	
-	public void addDefaultMessages(MidiSequenceHelper sh, TGSong tgSong) {
+	public void addDefaultMessages(MidiSequenceHelper sh, TGSong tgSong) throws InvalidMidiDataException {
 		if( (this.flags & ADD_DEFAULT_CONTROLS) != 0) {
 			Iterator<TGChannel> it = tgSong.getChannels();
 			while ( it.hasNext() ){
@@ -537,11 +539,11 @@ public class MidiSequenceParser {
 		}
 	}
 	
-	private void addBend(MidiSequenceHelper sh,int track, long tick,int bend, int channel, int midiVoice, boolean bendMode) {
+	private void addBend(MidiSequenceHelper sh,int track, long tick,int bend, int channel, int midiVoice, boolean bendMode) throws InvalidMidiDataException {
 		sh.getSequence().addPitchBend(getTick(tick),track,channel,fix(bend), midiVoice, bendMode);
 	}
 	
-	public void makeVibrato(MidiSequenceHelper sh,int track,long start, long duration,int channel, int midiVoice, boolean bendMode){
+	public void makeVibrato(MidiSequenceHelper sh,int track,long start, long duration,int channel, int midiVoice, boolean bendMode) throws InvalidMidiDataException{
 		long nextStart = start;
 		long end = nextStart + duration;
 		
@@ -554,7 +556,7 @@ public class MidiSequenceParser {
 		addBend(sh, track, nextStart, DEFAULT_BEND, channel, midiVoice, bendMode);
 	}
 	
-	public void makeBend(MidiSequenceHelper sh,int track,long start, long duration, TGEffectBend bend, int channel, int midiVoice, boolean bendMode){
+	public void makeBend(MidiSequenceHelper sh,int track,long start, long duration, TGEffectBend bend, int channel, int midiVoice, boolean bendMode) throws InvalidMidiDataException{
 		List<BendPoint> points = bend.getPoints();
 		for(int i=0;i<points.size();i++){
 			TGEffectBend.BendPoint point = (TGEffectBend.BendPoint)points.get(i);
@@ -591,7 +593,7 @@ public class MidiSequenceParser {
 		addBend(sh, track, start + duration, DEFAULT_BEND, channel, midiVoice, bendMode);
 	}
 	
-	public void makeTremoloBar(MidiSequenceHelper sh,int track,long start, long duration, TGEffectTremoloBar effect, int channel, int midiVoice, boolean bendMode){
+	public void makeTremoloBar(MidiSequenceHelper sh,int track,long start, long duration, TGEffectTremoloBar effect, int channel, int midiVoice, boolean bendMode) throws InvalidMidiDataException{
 		List<TremoloBarPoint> points = effect.getPoints();
 		for(int i=0;i<points.size();i++){
 			TGEffectTremoloBar.TremoloBarPoint point = (TGEffectTremoloBar.TremoloBarPoint)points.get(i);
@@ -627,7 +629,7 @@ public class MidiSequenceParser {
 		addBend(sh, track, start + duration, DEFAULT_BEND, channel, midiVoice, bendMode);
 	}
 	
-	private void makeSlide(MidiSequenceHelper sh, TGNote note,TGTrack track, int mIndex, int bIndex, long startMove,int channel,int midiVoice,boolean bendMode){
+	private void makeSlide(MidiSequenceHelper sh, TGNote note,TGTrack track, int mIndex, int bIndex, long startMove,int channel,int midiVoice,boolean bendMode) throws InvalidMidiDataException{
 		MidiNoteHelper nextNote = this.getNextNote(sh, note, track, mIndex, bIndex, true);
 		if( nextNote != null ){
 			int value1 = note.getValue();
@@ -643,7 +645,7 @@ public class MidiSequenceParser {
 		}
 	}
 	
-	public void makeSlide(MidiSequenceHelper sh,int track,long tick1,int value1,long tick2,int value2,int channel, int midiVoice, boolean bendMode){
+	public void makeSlide(MidiSequenceHelper sh,int track,long tick1,int value1,long tick2,int value2,int channel, int midiVoice, boolean bendMode) throws InvalidMidiDataException{
 		long distance = (value2 - value1);
 		long length = (tick2 - tick1);
 		int points = (int)(length / (TGDuration.QUARTER_TIME / 8));
@@ -654,7 +656,7 @@ public class MidiSequenceParser {
 		}
 	}
 	
-	private void makeFadeIn(MidiSequenceHelper sh,int track,long start,long duration,int volume3,int channel){
+	private void makeFadeIn(MidiSequenceHelper sh,int track,long start,long duration,int volume3,int channel) throws InvalidMidiDataException{
 		int expression = 31;
 		int expressionIncrement = 1;
 		long tick = start;

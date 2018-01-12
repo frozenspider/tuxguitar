@@ -62,7 +62,7 @@ public class MidiSongReader extends MidiFileFormat implements TGSongReader {
 				this.settings = MidiSettings.getDefaults();
 			}
 			
-			Sequence sequence = new MidiFileReader().getSequence(handle.getInputStream());
+			Sequence sequence = new MidiFileReader().read(handle.getInputStream());
 			initFields(sequence);
 			Track[] tracks = sequence.getTracks();
 			for(int i = 0; i < tracks.length; i++){
