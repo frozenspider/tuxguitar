@@ -60,8 +60,9 @@ public class GMChannelRouter {
 			// Add default routes
 			else {
 				List<Integer> freeChannels = getFreeChannels();
-				route.setChannel1(( freeChannels.size() > 0 ? ((Integer)freeChannels.get(0)).intValue() : GMChannelRoute.NULL_VALUE ) );
-				route.setChannel2(( freeChannels.size() > 1 ? ((Integer)freeChannels.get(1)).intValue() : route.getChannel1() ) );
+				int freeChannel = freeChannels.isEmpty() ? GMChannelRoute.NULL_VALUE : freeChannels.get(0);
+				route.setChannel1(freeChannel);
+				route.setChannel2(freeChannel);
 			}
 		}
 		
