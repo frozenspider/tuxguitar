@@ -5,10 +5,7 @@ import java.io.OutputStream;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
-import javax.sound.midi.Track;
 
 import org.herac.tuxguitar.gm.GMChannelRoute;
 import org.herac.tuxguitar.gm.GMChannelRouter;
@@ -51,28 +48,28 @@ public class MidiSequenceHandlerImpl extends MidiSequenceHandler{
 		}
 	}
 	
-	public void addNoteOff(long tick, int track, int channelId, int note, int velocity, int voice, boolean bendMode) throws InvalidMidiDataException {
+	public void addNoteOff(long tick, int track, int channelId, int note, int velocity, int voice, boolean bendMode) {
 		GMChannelRoute gmChannel = this.router.getRoute(channelId);
 		if( gmChannel != null ){
 			addEvent(track, new MidiEvent(MidiMessageFactory.noteOff(resolveChannel(gmChannel, bendMode), note, velocity), tick));
 		}
 	}
 	
-	public void addNoteOn(long tick,int track,int channelId, int note, int velocity, int voice, boolean bendMode) throws InvalidMidiDataException {
+	public void addNoteOn(long tick,int track,int channelId, int note, int velocity, int voice, boolean bendMode) {
 		GMChannelRoute gmChannel = this.router.getRoute(channelId);
 		if( gmChannel != null ){
 			addEvent(track,new MidiEvent(MidiMessageFactory.noteOn(resolveChannel(gmChannel, bendMode), note, velocity), tick ));
 		}
 	}
 	
-	public void addPitchBend(long tick,int track,int channelId, int value, int voice, boolean bendMode) throws InvalidMidiDataException {
+	public void addPitchBend(long tick,int track,int channelId, int value, int voice, boolean bendMode) {
 		GMChannelRoute gmChannel = this.router.getRoute(channelId);
 		if( gmChannel != null ){
 			addEvent(track,new MidiEvent(MidiMessageFactory.pitchBend(resolveChannel(gmChannel,bendMode), value), tick ));
 		}
 	}
 	
-	public void addControlChange(long tick,int track,int channelId, int controller, int value) throws InvalidMidiDataException {
+	public void addControlChange(long tick,int track,int channelId, int controller, int value) {
 		GMChannelRoute gmChannel = this.router.getRoute(channelId);
 		if( gmChannel != null ){
 			addEvent(track,new MidiEvent(MidiMessageFactory.controlChange(gmChannel.getChannel1(), controller, value), tick ));
@@ -82,7 +79,7 @@ public class MidiSequenceHandlerImpl extends MidiSequenceHandler{
 		}
 	}
 	
-	public void addProgramChange(long tick,int track,int channelId, int instrument) throws InvalidMidiDataException {
+	public void addProgramChange(long tick,int track,int channelId, int instrument) {
 		GMChannelRoute gmChannel = this.router.getRoute(channelId);
 		if( gmChannel != null ){
 			addEvent(track,new MidiEvent(MidiMessageFactory.programChange(gmChannel.getChannel1(), instrument), tick ));
@@ -92,15 +89,15 @@ public class MidiSequenceHandlerImpl extends MidiSequenceHandler{
 		}
 	}
 	
-	public void addTrackName(long tick, int track, String name) throws InvalidMidiDataException {
+	public void addTrackName(long tick, int track, String name) {
 		addEvent(track, new MidiEvent(MidiMessageFactory.trackName(name), tick));
 	}
 	
-	public void addTempoInUSQ(long tick,int track,int usq) throws InvalidMidiDataException {
+	public void addTempoInUSQ(long tick,int track,int usq) {
 		addEvent(track,new MidiEvent(MidiMessageFactory.tempoInUSQ(usq), tick ));
 	}
 	
-	public void addTimeSignature(long tick,int track,TGTimeSignature ts) throws InvalidMidiDataException {
+	public void addTimeSignature(long tick,int track,TGTimeSignature ts) {
 		addEvent(track,new MidiEvent(MidiMessageFactory.timeSignature(ts), tick ));
 	}
 	

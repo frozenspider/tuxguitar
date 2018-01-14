@@ -4,11 +4,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.sound.midi.InvalidMidiDataException;
-
 import org.herac.tuxguitar.document.TGDocumentManager;
 import org.herac.tuxguitar.event.TGEventListener;
 import org.herac.tuxguitar.event.TGEventManager;
+import org.herac.tuxguitar.io.midi.MidiException;
 import org.herac.tuxguitar.song.managers.TGSongManager;
 import org.herac.tuxguitar.song.models.TGBeat;
 import org.herac.tuxguitar.song.models.TGChannel;
@@ -513,9 +512,9 @@ public class MidiPlayer{
 			midiSequenceParser.parse(getSequencer().createSequence(this.getSong().countTracks() + 2));
 			this.infoTrack = midiSequenceParser.getInfoTrack();
 			this.metronomeTrack = midiSequenceParser.getMetronomeTrack();
-		} catch (InvalidMidiDataException e) { 
+		} catch (MidiPlayerException e) { 
 			e.printStackTrace();
-		} catch (MidiPlayerException e) {
+		} catch (MidiException e) {
 			e.printStackTrace();
 		} finally {
 			this.unlock();
