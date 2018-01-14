@@ -1,8 +1,5 @@
 package org.herac.tuxguitar.io.midi;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
@@ -16,14 +13,12 @@ import org.herac.tuxguitar.song.models.TGTimeSignature;
 
 public class MidiSequenceHandlerImpl extends MidiSequenceHandler{
 	
-	private OutputStream stream;
 	private Sequence sequence;
 	private GMChannelRouter router;
 	
-	public MidiSequenceHandlerImpl(int tracks, GMChannelRouter router, OutputStream stream) throws InvalidMidiDataException {
+	public MidiSequenceHandlerImpl(int tracks, GMChannelRouter router) throws InvalidMidiDataException {
 		super(tracks);
 		this.router = router;
-		this.stream = stream;
 		this.init();
 	}
 	
@@ -102,10 +97,6 @@ public class MidiSequenceHandlerImpl extends MidiSequenceHandler{
 	}
 	
 	public void notifyFinish() {
-		try {
-			new MidiFileWriter().write(getSequence(), 1, this.stream);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		// Do nothing
 	}
 }

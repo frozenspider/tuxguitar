@@ -30,9 +30,12 @@ public class MidiSongWriter extends MidiFileFormat implements TGSongWriter {
 			}
 			MidiSequenceParser midiSequenceParser = new MidiSequenceParser(tgSong, tgSongManager,MidiSequenceParser.DEFAULT_EXPORT_FLAGS);
 			midiSequenceParser.setTranspose(settings.getTranspose());
-			midiSequenceParser.parse(new MidiSequenceHandlerImpl((tgSong.countTracks() + 1), gmChannelRouter, handle.getOutputStream()));
-		} catch (Throwable e) {
-			throw new TGFileFormatException(e);
+			MidiSequenceHandlerImpl midiSequenceHandler = new MidiSequenceHandlerImpl((tgSong.countTracks() + 1), gmChannelRouter);
+			midiSequenceParser.parse(midiSequenceHandler);
+			
+			new MidiFileWriter().write(midiSequenceHandler.getSequence(), 1, handle.getOutputStream());
+		} catch (Throwable ex) {
+			throw new TGFileFormatException(ex);
 		}
 	}
 }
